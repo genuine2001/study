@@ -5,9 +5,6 @@
 *    库 依 赖 : lvgl.h
 *    说    明 : 头文件声明
 *    版    本 : V1.0
-*    修改记录 :
-*        版本号    日期           作者     说明
-*        V1.0     2025-04-09    genuine   第一次创建
 *
 *    Copyright (C), All Rights Reserved.
 *    Note    :  1tab = 4 spaces!
@@ -19,6 +16,7 @@
 
 /******************************* INCLUDES *************************************/
 #include "lvgl.h"
+
 /******************************* INCLUDES *************************************/
 
 /******************************* DEFINES **************************************/
@@ -53,10 +51,6 @@
 /******************************* DEFINES **************************************/
 
 /***************************** DECLARATIONS ***********************************/
-
-lv_style_t lv_sys_default_style;                             /* default style */
-lv_style_t lv_sys_foucus_style;                              /* focus style   */
-
 typedef enum
 {
     LV_APP_STATE_DELETE = 0, /* Application is being deleted */
@@ -64,28 +58,29 @@ typedef enum
     LV_APP_STATE_HIDE   = 2, /* Application is being hidden  */
 } lv_app_state_t;
 
-typedef void (*app_callback_t)(void);  /* app callback function type          */
+typedef enum
+{
+    /*	Declare your app   */
+
+} lv_app_t;
+
+typedef void (*app_init_t)(void);          /* app init function type          */
+typedef void (*app_group_t)(lv_group_t *); /* app group init function type    */
 
 /***************************** DECLARATIONS ***********************************/
 
-static inline void lv_set_default_style(lv_obj_t *obj)
-{
-    lv_obj_add_style(obj, &lv_sys_default_style, 0);
-}
-
-static inline void lv_set_focus_style(lv_obj_t *obj)
-{
-    lv_obj_add_style(obj, &lv_sys_foucus_style, 4);
-}
-
-
 void lv_sys_init(void);
-lv_obj_t *lv_app_create(void);
-void lv_app_init(lv_obj_t *app_screen, uint8_t app_name, lv_group_t *app_group,
-                 app_callback_t app_create_cb, app_callback_t app_group_cb);
-void lv_app_load(uint8_t app_name);
-void lv_app_switch(uint8_t app_name, lv_app_state_t last_app_state);
-lv_obj_t * lv_app_add_page(uint8_t app_name);
+
+extern inline void lv_set_default_style(lv_obj_t *obj);
+extern inline void lv_set_focus_style(lv_obj_t *obj);
+
+void lv_app_init(lv_app_t app_name, app_init_t create_cb, app_group_t group_cb);
+void lv_app_load(lv_app_t app_name);
+void lv_app_switch(lv_app_t app_name, lv_app_state_t last_app_state);
+lv_obj_t *lv_app_add_page(void);
 void lv_app_return(void);
+extern inline lv_ovj_t * lv_app_get_screen(lv_app_t app_name);
+
+lv_obj_t *lv_sys_mask_create(lv_obj_t *obj);
 
 #endif /* __LV_SYS_H__ */

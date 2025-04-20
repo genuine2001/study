@@ -4,10 +4,6 @@
 *    文件名称 : sys.c
 *    库 依 赖 : sys.h
 *    说    明 : 能应用于整个嵌入式系统层的函数集合
-*    版    本 : V1.0
-*    修改记录 :
-*        版本号    日期           作者     说明
-*        V1.0     2025-04-05    genuine   第一次创建
 *
 *    Copyright (C), All Rights Reserved.
 *    Note    :  1tab = 4 spaces!

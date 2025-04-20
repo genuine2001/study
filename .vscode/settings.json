@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "lv_sys.h": "c",
+        "cstdlib": "c",
+        "bit": "c",
+        "compare": "c",
+        "limits": "c",
+        "new": "c",
+        "sys.h": "c",
+        "typeinfo": "c",
+        "stdint.h": "c"
+    }
+}
