@@ -8,6 +8,9 @@
         "new": "c",
         "sys.h": "c",
         "typeinfo": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "bsp_btn.h": "c",
+        "stdio.h": "c",
+        "type_traits": "c"
     }
 }
