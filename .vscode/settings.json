@@ -11,6 +11,8 @@
         "stdint.h": "c",
         "bsp_btn.h": "c",
         "stdio.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "stdlib.h": "c",
+        "multi_button.h": "c"
     }
 }

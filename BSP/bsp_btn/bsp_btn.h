@@ -5,9 +5,6 @@
 *    库 依 赖 : stdint.h
 *    说    明 : 头文件
 *    版    本 : V1.0
-*    修改记录 :
-*        版本号    日期           作者     说明
-*        V1.0     2025-03-23    genuine   第一次创建
 *
 *    Copyright (C), All Rights Reserved.
 *    Note    :  1tab = 4 spaces!
@@ -21,43 +18,39 @@
 /******************************* INCLUDES *************************************/
 
 /******************************* DEFINES **************************************/
-#define BTN_DEBUG                 0              /* DEBUG define              */
+#define BTN_DEBUG             0                  /* DEBUG define              */
 
-/* Note: The maximum number of keys is 16 */
-#define BSP_BTN_NUM               1              /* btn count                 */
-#define BSP_BTN_EVENT_NUM         5              /* btn event count           */
-#define BSP_BTN_FIFO_SIZE         16             /* btn fifo size             */ 
+#define BTN_EVENT_NUM         4                  /* btn event count           */
+#define BTN_FIFO_SIZE         16                 /* btn fifo size             */ 
 
-/* Note: the time unit is ms */
-#define BSP_BTN_FILTER_TIME       5              /* btn filter time           */
-#define BSP_BTN_DOUBLE_CLICK_TIME 1500           /* btn double click interval */
-#define BSP_BTN_HOLD_TIME         1000           /* btn hold time             */
+/* Note: the time unit is 5ms */
+#define BTN_FILTER_TIME       4                  /* btn filter time           */
+#define BTN_DOUBLE_CLICK_TIME 50                 /* btn double click interval */
+#define BTN_LONG_PRESS_TIME   250                /* btn long pressed interval */
+#define BTN_LONG_REPEAT_TIME  25                 /* btn long repeat interval  */
+
 
 /******************************* DEFINES **************************************/
 
 /***************************** DECLARATIONS ***********************************/
-typedef enum
-{
-    BTN_IDLE         = 0,  /* btn is idle            */
-    BTN_PRESSED      = 1,  /* btn is pressed         */
-    BTN_CLICKED      = 2,  /* btn is clicked         */
-    BTN_DOUBLE_CLICK = 3,  /* btn is double click    */
-    BTN_LONG_PRESS   = 4,  /* btn is long press      */
-} bsp_status_t;
-
 typedef void (*btn_callback_t)(void); /* btn callback function type */
 
-typedef struct
+typedef struct btn_t
 {
-    bsp_status_t                                     status;
-    uint16_t                                    filter_time;
-    uint16_t                              double_click_time;
-    uint16_t                                      hold_time;
+    /***************** feature of target  *****************/
+    uint8_t                                      status : 3;
+    uint8_t                                   pin_level : 1;
+    uint8_t                                 filter_time : 3;
+    uint8_t                                   click_cnt : 1;
+    uint8_t                                              id;
+    uint16_t                                          ticks;
     /***************** IO need of target  *****************/
     /* the interface from core layer                      */
     uint8_t                         (*pf_is_btn_down)(void);
     /* the interface from user                            */
-    btn_callback_t          btn_callback[BSP_BTN_EVENT_NUM];
+    btn_callback_t              btn_callback[BTN_EVENT_NUM];
+    /******************** Next btn  ***********************/
+    struct btn_t*                                      next;
 } bsp_btn_t;
 
 /**************** The APIs of bsp_btn module ****************/
