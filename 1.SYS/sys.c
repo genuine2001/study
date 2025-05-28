@@ -27,46 +27,6 @@
 /***************************** DECLARATIONS ***********************************/
 
 /*******************************************************************************
-* @brief Initialize the tick timer of the system
-
-* @param tick_ms: the tick timer interval in milliseconds
-*******************************************************************************/
-void sys_tick_init(uint16_t tick_ms)
-{
-    SysTick_Config(SystemCoreClock / 1000 * tick_ms);
-}
-
-/*******************************************************************************
-* @brief Handle the tick timer interrupt
-*******************************************************************************/
-static void SysTick_Handler(void)
-{
-    
-}
-
-/*******************************************************************************
-* @brief Obtain the running time of the system as the time base
-*
-* @return the current tick counter of the system
-*******************************************************************************/
-inline uint32_t sys_get_tick(void)
-{
-    return Systick->VAL;
-}
-
-/*******************************************************************************
-* @brief Delay the system for a specified number of milliseconds
-*******************************************************************************/
-inline void sys_delay_ms(uint32_t ms)
-{
-    uint32_t start_tick = sys_get_tick();
-    while (sys_get_tick() - start_tick < ms)
-    {
-        __WFI();
-    }
-}
-
-/*******************************************************************************
 * @brief init the fifo struct
 *
 * @param fifo: pointer of the fifo struct

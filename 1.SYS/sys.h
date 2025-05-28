@@ -1,7 +1,7 @@
 /*
 ********************************************************************************
 *    文件名称 : sys.h
-*    库 依 赖 : stdint.h, stdio.h, stdlib.h, string.h
+*    库 依 赖 : stdint.h, stdio.h, stdlib.h, string.h, sys_conf.h
 *    说    明 : 头文件声明
 *
 *    Ver: 1.0    Date: 2025-01-13     Author: xzt
@@ -17,8 +17,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "sys_conf.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
+#if USE_PERF_COUNTER
+    #include "perf_counter.h"
+#endif
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
 typedef struct 
@@ -30,16 +34,6 @@ typedef struct
     uint32_t            tail;  /* tail of buffer    */
 } sys_fifo_t;
 /***************************** DECLARATIONS ***********************************/
-/**************************** The APIs of Systick *****************************/
-/* First API: init the systick      */
-void sys_tick_init(uint16_t tick_ms);
-
-/* Second API: get the time base    */
-uint32_t sys_get_tick(void);
-
-/* Third API: delay the time        */
-void sys_delay_ms(uint32_t ms);
-/**************************** The APIs of Systick *****************************/
 /****************************** The APIs of FIFO ******************************/
 /* First API: init the fifo                                    */
 void sys_fifo_init(sys_fifo_t *fifo, void *buffer,
