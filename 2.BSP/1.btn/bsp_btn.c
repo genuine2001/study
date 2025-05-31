@@ -222,12 +222,14 @@ void bsp_btn_add(bsp_btn_t *btn, uint8_t (*pf_is_btn_down)(void))
     btn->id                = btn_list ? btn_list->id + 1 : 0;
     btn->flag              = 0;
     btn->next              = NULL;
-    
+
+#if BTN_USE_EVENT    
     for (int i = 0; i < BTN_EVENT_NUM; i++)
     {
         btn->btn_callback[i] = NULL;
     }
-
+#endif
+    
     /*	step2,	add the button object to the btn list */
     btn->next = btn_list;
     btn_list  = btn;
