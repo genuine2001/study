@@ -1,3 +1,6 @@
+4.Temp/
+6.Pack/
+
 *.lst
 *.o
 *.d
@@ -20,6 +23,7 @@
 *.ioc
 *.map
 
+
 #Keil Project screen layout file
 *.uvguix.*
 *.uvgui.*
@@ -34,7 +38,3 @@ JLinkLog.txt
 *.dbg*
 *.uvguix.*
 .mxproject
- 
-!*.uvprojx
-!*.h
-!*.c

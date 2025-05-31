@@ -23,6 +23,9 @@
 #if USE_PERF_COUNTER
     #include "perf_counter.h"
 #endif
+#if USE_BSP_BTN
+    #include "./1.btn/bsp_btn.h"
+#endif
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
 typedef struct 

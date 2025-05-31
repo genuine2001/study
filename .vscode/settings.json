@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "stdint.h": "c",
-        "sys.h": "c"
+        "sys.h": "c",
+        "compare": "c",
+        "stdio.h": "c",
+        "cstdlib": "c",
+        "typeinfo": "c",
+        "lv_sys_app.h": "c"
     }
 }
