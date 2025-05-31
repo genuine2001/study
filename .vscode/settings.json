@@ -6,6 +6,8 @@
         "stdio.h": "c",
         "cstdlib": "c",
         "typeinfo": "c",
-        "lv_sys_app.h": "c"
+        "lv_sys_app.h": "c",
+        "bsp_btn.h": "c",
+        "stdlib.h": "c"
     }
 }

@@ -80,7 +80,7 @@ static void bsp_btn_machine(bsp_btn_t *btn)
     /*	step2,	btn ticks plus one */
     btn->ticks++;
 
-    /*	step2,	handle the button status */
+    /*	step3,	handle the button status */
     switch(btn->status){
     case BTN_IDLE:
         btn->ticks = 0;
@@ -91,13 +91,13 @@ static void bsp_btn_machine(bsp_btn_t *btn)
         }
         break;
     case BTN_PRESSED:
-        if(IS_PRESSED && IS_LONG_PRESSED && BTN_HAS_LONG_STATUS)
+        if(IS_PRESSED && BTN_HAS_LONG_STATUS && IS_LONG_PRESSED)
         {
             key_value = BTN_LONG_PRESS_VALUE;
             sys_fifo_push(&btn_fifo, &key_value);
             btn->status = BTN_LONG_PRESS;
         }
-        else if(IS_PRESSED && IS_LONG_REPEAT && BTN_HAS_LONG_HOLD_STATUS)
+        else if(IS_PRESSED && BTN_HAS_LONG_HOLD_STATUS && IS_LONG_REPEAT)
         {
             btn->ticks = 0;
             key_value = BTN_LONG_PRESS_HOLD_VALUE;
@@ -114,12 +114,16 @@ static void bsp_btn_machine(bsp_btn_t *btn)
         btn->status = btn->click_cnt ? BTN_DOUBLE_CLICK : BTN_CLICKED;
         break;
     case BTN_CLICKED:
-        if(IS_PRESSED && IS_DOUBLE_CLICK && BTN_HAS_DOBLE_STATUS)
+        if(IS_PRESSED && BTN_HAS_DOBLE_STATUS && IS_DOUBLE_CLICK)
         {
             btn->click_cnt++;
             btn->status = BTN_PRESSED;
         }
-        else if(IS_RELEASED && IS_SINGLE_CLICK)
+        /* step3.1,	如果有双击状态则需要松开时间超出双击间隔后才判断为单击，
+        *           没有双击状态则松开直接判断为单击
+        */
+        else if((IS_RELEASED && BTN_HAS_DOBLE_STATUS && IS_SINGLE_CLICK)
+                || (IS_RELEASED && !BTN_HAS_DOBLE_STATUS))
         {
             key_value = BTN_CLICKED_VALUE;
             sys_fifo_push(&btn_fifo, &key_value);

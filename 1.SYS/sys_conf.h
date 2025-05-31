@@ -13,6 +13,6 @@
 #define __SYS_CONF_H__
    
 #define USE_PERF_COUNTER    0
-#define USB_BSP_BTN         1
+#define USE_BSP_BTN         1
 
 #endif /* __SYS_CONF_H__ */

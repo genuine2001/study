@@ -27,6 +27,19 @@
 /***************************** DECLARATIONS ***********************************/
 
 /*******************************************************************************
+* @brief init the system layer
+*
+* @note  Initialize the system layer according to the macros defined in
+         the sys_conf.h file
+*******************************************************************************/
+void sys_init(void)
+{
+#if USE_BSP_BTN
+    bsp_btn_init();
+#endif
+}
+
+/*******************************************************************************
 * @brief init the fifo struct
 *
 * @param fifo: pointer of the fifo struct

@@ -24,9 +24,9 @@
 
 /* Note: the time unit is 5ms */
 #define BTN_FILTER_TIME       4                  /* btn filter time           */
-#define BTN_DOUBLE_CLICK_TIME 40                 /* btn double click interval */
+#define BTN_DOUBLE_CLICK_TIME 30                 /* btn double click interval */
 #define BTN_LONG_PRESS_TIME   200                /* btn long pressed interval */
-#define BTN_LONG_REPEAT_TIME  50                 /* btn long repeat interval  */
+#define BTN_LONG_REPEAT_TIME  60                 /* btn long repeat interval  */
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
 typedef enum
