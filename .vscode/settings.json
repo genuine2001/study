@@ -8,6 +8,16 @@
         "typeinfo": "c",
         "lv_sys_app.h": "c",
         "bsp_btn.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "stdbool.h": "c",
+        "stddef.h": "c",
+        "sys_conf.h": "c",
+        "bit": "c",
+        "limits": "c",
+        "new": "c",
+        "lv_port_indev_template.h": "c",
+        "lv_sys.h": "c",
+        "lv_sys_font.h": "c",
+        "lv_port_disp_template.h": "c"
     }
 }

@@ -45,17 +45,17 @@ void lv_app_switch(lv_app_t app_name, lv_app_state_t last_app_state);
 lv_obj_t   *lv_app_add_page(const char *page_name);
 lv_group_t *lv_page_add_group(const char *page_name);
 lv_timer_t *lv_page_add_timer(const char *page_name);
+void lv_page_add_data(const char *page_name, void *data, uint8_t mflag);
 
 lv_obj_t   *lv_app_get_page(const char *page_name);
 lv_group_t *lv_page_get_group(const char *page_name);
 lv_timer_t *lv_page_get_timer(const char *page_name);
+void       *lv_page_get_data(const char *page_name);
 
 void lv_app_del_page(const char *page_name);
 void lv_page_del_timer(const char *page_name);
 void lv_page_del_group(const char *page_name);
 void lv_app_del_page_delayed(const char *page_name, uint32_t delay_ms);
-
-void lv_page_switch_group(const char *page_name, lv_group_t *group);
 
 void lv_up_cb(lv_event_t *event);
 void lv_home_cb(lv_event_t *event);

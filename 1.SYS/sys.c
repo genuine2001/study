@@ -14,7 +14,9 @@
 #include "sys.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
-#define MIN(a, b)               ((a) < (b) ? (a) : (b))    
+#if USE_PERF_COUNTER == 0
+#define MIN(a, b)               ((a) < (b) ? (a) : (b))   
+#endif 
 
 #define FIFO_HEAD(fifo)         ((fifo)->head & (fifo)->buffer_size - 1)
 #define FIFO_TAIL(fifo)         ((fifo)->tail & (fifo)->buffer_size - 1)
@@ -34,6 +36,9 @@
 *******************************************************************************/
 void sys_init(void)
 {
+#if USE_PERF_COUNTER
+    init_cycle_counter(true);
+#endif
 #if USE_BSP_BTN
     bsp_btn_init();
 #endif

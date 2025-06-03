@@ -33,8 +33,8 @@ typedef struct
     void                  *buffer;  /* pointer of buffer */
     uint16_t          buffer_size;  /* buffer size       */
     uint16_t         element_size;  /* element size      */
-    __IO uint32_t            head;  /* head of buffer    */
-    __IO uint32_t            tail;  /* tail of buffer    */
+    volatile uint32_t        head;  /* head of buffer    */
+    volatile uint32_t        tail;  /* tail of buffer    */
 } sys_fifo_t;
 /***************************** DECLARATIONS ***********************************/
 /****************************** The APIs of FIFO ******************************/

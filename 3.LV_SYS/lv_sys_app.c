@@ -39,6 +39,8 @@
                                     lv_group_del(PAGE->group);       \
                                     if(NULL != PAGE->timer)          \
                                     lv_timer_del(PAGE->timer);       \
+                                    if(NULL != PAGE->mflag)          \
+                                    lv_mem_free(PAGE->mflag);        \
                                     lv_obj_del(PAGE->screen);        \
                                     lv_mem_free(PAGE->name);         \
                                     lv_mem_free(PAGE) 
@@ -46,10 +48,12 @@
 /***************************** DECLARATIONS ***********************************/
 typedef struct lv_app_page
 {
+    uint8_t                mflag ;
     char                  *name  ;
     lv_obj_t              *screen;
     lv_group_t            *group ;
     lv_timer_t            *timer ;
+    void                  *data  ;
     struct lv_app_page    *next  ;
 } lv_app_page_t;
 
@@ -110,7 +114,13 @@ void lv_app_load(lv_app_t app_name)
 *******************************************************************************/
 void lv_app_switch(lv_app_t app_name, lv_app_state_t last_app_state)
 {
-    /*	step1,	process the current app  */
+    /*	step1,	Check whether it is necessary to switch the app */
+    if(app_name == lv_app_current->app)
+    {
+        return;
+    }
+
+    /*	step2,	process the current app  */
     if(LV_APP_STATE_HIDE == last_app_state)
     {
         lv_obj_add_flag(lv_app_current->screen, LV_OBJ_FLAG_HIDDEN);
@@ -128,7 +138,7 @@ void lv_app_switch(lv_app_t app_name, lv_app_state_t last_app_state)
         lv_app_current->state = LV_APP_STATE_DELETE;
     }
 
-    /*	step2,	process the switch app */
+    /*	step3,	process the switch app */
     lv_app_current = &lv_app_buffer[app_name];
     if(LV_APP_STATE_HIDE == lv_app_current->state)
     {
@@ -156,16 +166,17 @@ lv_obj_t *lv_app_add_page(const char *page_name)
     /*	step1,	create the page */
     lv_app_page_t *page = (lv_app_page_t *)lv_mem_alloc(sizeof(lv_app_page_t));
 
+    page->group = NULL;
+    page->timer = NULL;
+    page->data  = NULL;
+    page->mflag = NULL;
+
     page->name = lv_mem_alloc(strlen(page_name) + 1);
     strcpy(page->name, page_name);
 
     page->screen = lv_obj_create(lv_app_current->screen);
     lv_obj_set_size(page->screen, LV_SYS_WIDTH, LV_SYS_HEIGHT);
     lv_sys_set_default_style(page->screen);
-
-    page->group = NULL;
-
-    page->timer = NULL;
 
     /*	step2,	add the page to the page list */
     lv_app_page_t *head = lv_app_current->page_list;
@@ -248,6 +259,47 @@ lv_timer_t *lv_page_add_timer(const char *page_name)
         page->timer = lv_timer_create(NULL, 1000, NULL);
     }
     return page->timer;
+}
+
+/*******************************************************************************
+* @brief Add a user data to the page.
+*
+* @param page_name: The name of the page.
+*        null:  current page.
+*        other: the name of the page.
+* @param data:  The user data.
+* @param mflag: The data needs to free up memory when deleting the page.
+*        true:  need to free up memory.
+*        false: no need to free up memory.
+*******************************************************************************/
+void lv_page_add_data(const char *page_name, void *data, uint8_t mflag)
+{
+    lv_app_page_t *page = lv_app_current->page_list;
+
+    /*	step1,	add the data to now page */
+    if(NULL == page_name && NULL != page)
+    {
+        page->data = data;
+        page->mflag = mflag;
+        return;
+    }
+
+    /*	step2,	find the page */
+    while(page != NULL)
+    {
+        if(0 == strcmp(page->name, page_name))
+        {
+            break;
+        }
+        page = page->next;
+    }
+
+    /*	step3,	add the data to the page */
+    if(NULL != page)
+    {
+        page->data = data;
+        page->mflag = mflag;
+    }
 }
 
 /*******************************************************************************
@@ -350,6 +402,39 @@ lv_timer_t *lv_page_get_timer(const char *page_name)
 }
 
 /*******************************************************************************
+* @brief Get a user data of the page.
+*
+* @param page_name: The name of the page.
+*        null:  current page.
+*        other: the name of the page.
+
+* @return the user data of the page.
+*******************************************************************************/
+void *lv_page_get_data(const char *page_name)
+{
+    lv_app_page_t *page = lv_app_current->page_list;
+
+    /*	step1,	get now page data */
+    if(NULL == page_name && NULL != page) 
+    {
+        return page->data;
+    }
+
+    /*	step2,	find the page */
+    while(page != NULL)
+    {
+        if(0 == strcmp(page->name, page_name))
+        {
+            return page->data;
+        }
+        page = page->next;
+    }
+
+    /*	step3,	not found */
+    return NULL;
+}
+
+/*******************************************************************************
 * @brief Delete a page of the current app.
 *
 * @param page_name: The name of the page.
@@ -440,44 +525,6 @@ static void lv_app_del_page_cb(lv_timer_t *timer)
 void lv_app_del_page_delayed(const char *page_name, uint32_t delay_ms)
 {
     lv_timer_t *timer = lv_timer_create(lv_app_del_page_cb, delay_ms, page_name);
-}
-
-/*******************************************************************************
-* @brief Switch the group of the page.
-*
-* @param page_name: The name of the page.
-*        null:  current page.
-*        other: the name of the page.
-* @param group: The new group.
-*******************************************************************************/
-void lv_page_switch_group(const char *page_name, lv_group_t *group)
-{
-    lv_app_page_t *page = lv_app_current->page_list;
-    
-    /*	step1,	switch now page group */
-    if(NULL == page_name && NULL != page && NULL != page->group) 
-    {
-        page->group = group;
-        LV_PAGE_SET_GROUP(page);
-        return;
-    }
-
-    /*	step2,	find the page */
-    while(page != NULL)
-    {
-        if(0 == strcmp(page->name, page_name))
-        {
-            break;
-        }
-        page = page->next;
-    }
-
-    /*	step3,	switch the page group */
-    if(NULL != page) 
-    {
-        page->group = group;
-        LV_PAGE_SET_GROUP(page);
-    }
 }
 
 /*******************************************************************************
