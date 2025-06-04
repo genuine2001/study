@@ -20,41 +20,28 @@
 #include "sys_conf.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
+#if USE_FIFO
+    #include "./1.fifo/sys_fifo.h"
+#endif
 #if USE_PERF_COUNTER
     #include "perf_counter.h"
+    #define sys_get_ticks()     get_system_ms()
 #endif
 #if USE_BSP_BTN
     #include "./1.btn/bsp_btn.h"
 #endif
+
+#define sys_malloc(x)         malloc(x)
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
-typedef struct 
-{
-    void                  *buffer;  /* pointer of buffer */
-    uint16_t          buffer_size;  /* buffer size       */
-    uint16_t         element_size;  /* element size      */
-    volatile uint32_t        head;  /* head of buffer    */
-    volatile uint32_t        tail;  /* tail of buffer    */
-} sys_fifo_t;
 /***************************** DECLARATIONS ***********************************/
 /****************************** The APIs of FIFO ******************************/
-/* First API: init the sys                                     */
+/* First API: init the sys  */
 void sys_init(void);
 
-/* Second API: init the fifo                                   */
-void sys_fifo_init(sys_fifo_t *fifo, void *buffer,
-                   uint16_t buffer_size, uint16_t element_size);
-                      
-/* Third API: push data into the fifo                         */
-void sys_fifo_push(sys_fifo_t *fifo, const void *data);
-
-/* Fourth API: push multiple data into the fifo               */
-void sys_fifo_push_array(sys_fifo_t *fifo, const void *data, int16_t count);
-
-/* Fifth API: pop data from the fifo                          */
-void sys_fifo_pop(sys_fifo_t *fifo, void *data);
-
-/* Sixth API: pop multiple data from the fifo                 */
-void sys_fifo_pop_array(sys_fifo_t *fifo, void *data, int16_t count);
-/****************************** The APIs of FIFO ******************************/
+/* Second API: send data to FIFO */
+#if USE_PERF_COUNTER == 0
+uint32_t sys_get_ticks(void);
+#endif
+/************************************ END *************************************/
 #endif /* __SYS_H__ */

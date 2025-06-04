@@ -1,43 +1,36 @@
 /*
 ********************************************************************************
-*    文件名称 : sys.c
+*    文件名称 : sys_timer.h
 *    库 依 赖 : sys.h
-*    说    明 : 能应用于整个嵌入式系统层的函数集合
+*    说    明 : 头文件
+*    版    本 : V1.0
 *
-*    Ver: 1.0    Date: 2025-01-13     Author: xzt
-*    
+*    Ver: 1.0    Date: 2025-06-4     Author: xzt
+* 
 *    Copyright (C), All Rights Reserved.
 *    Note    :  1tab = 4 spaces!
 ********************************************************************************
 */
+#ifndef __SYS_TIMER_H__
+#define __SYS_TIMER_H__
 /******************************* INCLUDES *************************************/
 #include "sys.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
+struct _sys_timer;
+typedef void (*timer_cb_t)(struct _sys_timer *timer);
+typedef struct _sys_timer
+{
+    uint32_t           ticks       ;
+    uint32_t           period      ;
+    uint32_t           repeat_count;
+    void              *user_data   ;
+    timer_cb_t         timer_cb    ;
+    struct _sys_timer *next        ;
+} sys_timer_t;
 /***************************** DECLARATIONS ***********************************/
 
-/*******************************************************************************
-* @brief init the system layer
-*
-* @note  Initialize the system layer according to the macros defined in
-         the sys_conf.h file
-*******************************************************************************/
-void sys_init(void)
-{
-#if USE_PERF_COUNTER
-    init_cycle_counter(true);
-#endif
-#if USE_BSP_BTN
-    bsp_btn_init();
-#endif
-}
-
-#if USE_PERF_COUNTER == 0
-uint32_t sys_get_ticks(void)
-{
-    /* To be implemented by the user */
-}
-#endif
 /*********************************** END **************************************/
+#endif /* __SYS_TIMER_H__ */
