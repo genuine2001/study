@@ -13,7 +13,8 @@
 #define __SYS_CONF_H__
 
 #define USE_FIFO            1
-#define USE_PERF_COUNTER    0
-#define USE_BSP_BTN         0                    /* need to use fifo          */
+#define USE_TIMER           1
+#define USE_PERF_COUNTER    1
+#define USE_BSP_BTN         1                    /* need to use fifo          */
 
 #endif /* __SYS_CONF_H__ */

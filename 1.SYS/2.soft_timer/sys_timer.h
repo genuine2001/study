@@ -26,12 +26,20 @@ typedef struct _sys_task
     uint8_t            priority    ;
     uint32_t           ticks       ;
     uint32_t           period      ;
-    uint32_t           repeat_count;
+    int32_t            repeat_count;
     void              *user_data   ;
     task_cb_t          task_cb     ;
     struct _sys_task  *next        ;
 } sys_task_t;
 /***************************** DECLARATIONS ***********************************/
+
+void sys_task_init(void);
+void sys_task_mainloop(void);
+void sys_task_loop(void);
+void sys_task_create(task_cb_t cb, uint32_t period, void *user_data);
+void sys_task_later(task_cb_t cb, uint32_t delay, void *user_data);
+void sys_task_create_isr(task_cb_t cb, uint32_t period, void *user_data);
+void sys_task_later_isr(task_cb_t cb, uint32_t delay, void *user_data);
 
 /*********************************** END **************************************/
 #endif /* __SYS_TIMER_H__ */
