@@ -12,7 +12,7 @@
 #ifndef __SYS_CONF_H__
 #define __SYS_CONF_H__
 
-#define USE_FIFO            0
+#define USE_FIFO            1
 #define USE_PERF_COUNTER    0
 #define USE_BSP_BTN         0                    /* need to use fifo          */
 

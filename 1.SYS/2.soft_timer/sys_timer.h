@@ -19,17 +19,18 @@
 /******************************* DEFINES **************************************/
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
-struct _sys_timer;
-typedef void (*timer_cb_t)(struct _sys_timer *timer);
-typedef struct _sys_timer
+struct _sys_task;
+typedef void (*task_cb_t)(struct _sys_task *task);
+typedef struct _sys_task
 {
+    uint8_t            priority    ;
     uint32_t           ticks       ;
     uint32_t           period      ;
     uint32_t           repeat_count;
     void              *user_data   ;
-    timer_cb_t         timer_cb    ;
-    struct _sys_timer *next        ;
-} sys_timer_t;
+    task_cb_t          task_cb     ;
+    struct _sys_task  *next        ;
+} sys_task_t;
 /***************************** DECLARATIONS ***********************************/
 
 /*********************************** END **************************************/

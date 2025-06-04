@@ -20,6 +20,7 @@
         "lv_sys_font.h": "c",
         "lv_port_disp_template.h": "c",
         "sys_timer.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "sys_fifo.h": "c"
     }
 }

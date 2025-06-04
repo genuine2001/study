@@ -15,77 +15,152 @@
 #include "sys_timer.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
-#define ARRIVE_TIME         sys_get_ticks() - timer->ticks >= timer->period
-#define HAS_COUNTER         (timer->repeat_count != 0)
-#define INFINITELY          (timer->repeat_count == -1)
+#define ARRIVE_TIME         sys_get_ticks() - task->ticks >= task->period
+#define HAS_COUNTER         (task->repeat_count != 0)
+#define INFINITELY          (task->repeat_count == -1)
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
-static sys_timer_t *timer_list = NULL;
+static sys_task_t *task_list = NULL;
+static sys_fifo_t task_fifo;
+static sys_task_t task_buffer[10];
+static sys_task_t* sys_task_inst(task_cb_t cb, uint32_t period, void *user_data);
 /***************************** DECLARATIONS ***********************************/
 
-void sys_timer_create(timer_cb_t cb, uint32_t period, void *user_data)
+void sys_task_init(void)
 {
-    /*	step1,	malloc a timer struct */
-    sys_timer_t *timer = (sys_timer_t *)sys_malloc(sizeof(sys_timer_t));
-    if(NULL == timer)
+    sys_fifo_init(&task_fifo, task_buffer, sizeof(sys_task_t), 10);
+}
+
+void sys_task_create(task_cb_t cb, uint32_t period, void *user_data)
+{
+    /*	step1,	inst a task struct */
+    sys_task_t *task = sys_task_inst(cb, period, user_data);
+
+    /*	step2,	initialize the task struct */
+    task->priority      =  0;
+    task->repeat_count  =  -1;
+}
+
+void sys_task_later(task_cb_t cb, uint32_t delay, void *user_data)
+{
+    /*	step1,	inst a task struct */
+    sys_task_t *task = sys_task_inst(cb, delay, user_data);
+
+    /*	step2,	initialize the task struct */
+    task->priority      =  0;
+    task->repeat_count  =  1;
+}
+
+void sys_task_create_isr(task_cb_t cb, uint32_t period, void *user_data)
+{
+    /*	step1,	inst a task struct */
+    sys_task_t *task = sys_task_inst(cb, period, user_data);
+
+    /*	step2,	initialize the task struct */
+    task->priority      =  1;
+    task->repeat_count  =  -1;
+}
+
+void sys_task_later_isr(task_cb_t cb, uint32_t delay, void *user_data)
+{
+    /*	step1,	inst a task struct */
+    sys_task_t *task = sys_task_inst(cb, delay, user_data);
+
+    /*	step2,	initialize the task struct */
+    task->priority      =  1;
+    task->repeat_count  =  1;
+}
+
+void sys_task_set_priority(sys_task_t *task, uint8_t priority)
+{
+    task->priority = priority;
+}
+
+void sys_task_set_period(sys_task_t *task, uint32_t period)
+{
+    task->period = period;
+}
+
+void sys_task_set_repeat_count(sys_task_t *task, int repeat_count)
+{
+    task->repeat_count = repeat_count;
+}
+
+void sys_task_loop(void)
+{
+    sys_task_t *task = task_list;
+    while(NULL != task)
+    {
+        if(ARRIVE_TIME && HAS_COUNTER)
+        {   
+            task->ticks = sys_get_ticks();
+            task->repeat_count = INFINITELY ? -1 : task->repeat_count - 1;
+            if(task->priority == 0)
+            {
+                sys_fifo_push(&task_fifo, task);
+            }      
+            else
+            {
+                task->task_cb(task->user_data);    
+            }  
+            if(task->repeat_count == 0)
+            {
+                sys_task_delete(task);
+            }
+        }
+        task = task->next;
+    }
+}
+
+void sys_task_mainloop(void)
+{
+    sys_task_t *task = NULL;
+    sys_fifo_pop(&task_fifo, task);
+    if(NULL != task)
+    {
+        task->task_cb(task->user_data);
+    }
+    else
+    { /* Idle tasks can be executed */
+
+    }
+}
+
+static sys_task_t* sys_task_inst(task_cb_t cb, uint32_t period, void *user_data)
+{
+    /*	step1,	malloc a task struct */
+    sys_task_t *task = (sys_task_t *)sys_malloc(sizeof(sys_task_t));
+    if(NULL == task)
     {
         return;
     }
 
-    /*	step2,	initialize the timer struct */
-    timer->period       = period;
-    timer->repeat_count = -1;
-    timer->ticks        = sys_get_ticks();
-    timer->timer_cb     = cb;
-    timer->user_data    = user_data;
+    /*	step2,	initialize the task struct */
+    task->period       = period;
+    task->ticks        = sys_get_ticks();
+    task->task_cb      = cb;
+    task->user_data    = user_data;
 
-    /*	step3,	add the timer to the timer list */
-    timer->next = timer_list;
-    timer_list  = timer;
+    /*	step3,	add the task to the task list */
+    task->next = task_list;
+    task_list  = task;
+
+    return task;
 }
 
-void sys_timer_set_period(sys_timer_t *timer, uint32_t period)
+static void sys_task_delete(sys_task_t *task)
 {
-    timer->period = period;
-}
-
-void sys_timer_set_repeat_count(sys_timer_t *timer, int repeat_count)
-{
-    timer->repeat_count = repeat_count;
-}
-
-void sys_timer_loop(void)
-{
-    sys_timer_t *timer = timer_list;
-    while(NULL != timer)
-    {
-        if(ARRIVE_TIME && HAS_COUNTER)
-        {   
-            timer->ticks = sys_get_ticks();
-            timer->repeat_count = INFINITELY ? -1 : timer->repeat_count - 1;
-            timer->timer_cb(timer->user_data);            
-            if(timer->repeat_count == 0)
-            {
-                sys_timer_delete(timer);
-            }
-        }
-        timer = timer->next;
-    }
-}
-
-void sys_timer_delete(sys_timer_t *timer)
-{
-    sys_timer_t *head = timer_list;
+    sys_task_t *head = task_list;
     /*	step1,	The node to be deleted is the head node */
-    if(head == timer)
+    if(head == task)
     {
-        timer_list = timer_list->next;
-        sys_free(timer);
+        task_list = task_list->next;
+        sys_free(task);
         return;
     }
 
     /*	step2,	The node to be deleted is not the head node */
-    while (head->next != NULL && head->next != timer) 
+    while (head->next != NULL && head->next != task) 
     {
         head = head->next;
         /*	step2.1, no found */
@@ -93,6 +168,6 @@ void sys_timer_delete(sys_timer_t *timer)
     }
     
     /*	step3,	The node to be deleted is found */
-    head->next = timer->next;
-    sys_free(timer);
+    head->next = task->next;
+    sys_free(task);
 }
