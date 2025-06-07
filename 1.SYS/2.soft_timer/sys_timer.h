@@ -19,27 +19,23 @@
 /******************************* DEFINES **************************************/
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
-struct _sys_task;
-typedef void (*task_cb_t)(struct _sys_task *task);
-typedef struct _sys_task
+struct _sys_timer;
+typedef void (*timer_cb_t)(struct _sys_timer *timer);
+typedef struct
 {
-    uint8_t            priority    ;
-    uint32_t           ticks       ;
-    uint32_t           period      ;
-    int32_t            repeat_count;
-    void              *user_data   ;
-    task_cb_t          task_cb     ;
-    struct _sys_task  *next        ;
-} sys_task_t;
+    uint32_t            ticks       ;
+    uint32_t            period      ;
+    int16_t             repeat_count;
+    uint16_t            id : 15     ;
+    uint16_t            state : 1   ;
+#if TIMER_USE_DATA
+    void               *user_data   ;
+#endif
+    timer_cb_t          timer_cb    ;
+    struct _sys_timer  *prev        ;
+    struct _sys_timer  *next        ;
+} sys_timer_t;
 /***************************** DECLARATIONS ***********************************/
-
-void sys_task_init(void);
-void sys_task_mainloop(void);
-void sys_task_loop(void);
-void sys_task_create(task_cb_t cb, uint32_t period, void *user_data);
-void sys_task_later(task_cb_t cb, uint32_t delay, void *user_data);
-void sys_task_create_isr(task_cb_t cb, uint32_t period, void *user_data);
-void sys_task_later_isr(task_cb_t cb, uint32_t delay, void *user_data);
 
 /*********************************** END **************************************/
 #endif /* __SYS_TIMER_H__ */

@@ -72,6 +72,34 @@ void sys_fifo_push(sys_fifo_t *fifo, const void *data)
 }
 
 /*******************************************************************************
+* @brief pop data from the fifo
+*
+* @param fifo: pointer of the fifo struct
+* @param data: pointer of the data to be popped
+*
+* @return None
+*******************************************************************************/
+void sys_fifo_pop(sys_fifo_t *fifo, void *data)
+{
+    /*	step1,	check if the fifo is empty	       */
+    if (FIFO_IS_EMPTY(fifo))
+    {
+        return;
+    }
+
+    /*	step2,	calculate the read position        */
+    uint8_t *buffer = (uint8_t *)fifo->buffer;
+    buffer += (FIFO_TAIL(fifo) * fifo->element_size);
+
+    /*	step3,	read the data from the buffer      */
+    memcpy(data, buffer, fifo->element_size);
+
+    /*	step4,	update the tail pointer		       */
+    fifo->tail++;
+}
+
+#if FIFO_USE_MULTI
+/*******************************************************************************
 * @brief push multiple data into the fifo
 *
 * @param fifo: pointer of the fifo struct
@@ -119,33 +147,6 @@ void sys_fifo_push_array(sys_fifo_t *fifo, const void *data, int16_t count)
     data = (const uint8_t *)data + cnt1 * fifo->element_size;
     memcpy(buffer, data, cnt2 * fifo->element_size);
     fifo->head += cnt2;
-}
-
-/*******************************************************************************
-* @brief pop data from the fifo
-*
-* @param fifo: pointer of the fifo struct
-* @param data: pointer of the data to be popped
-*
-* @return None
-*******************************************************************************/
-void sys_fifo_pop(sys_fifo_t *fifo, void *data)
-{
-    /*	step1,	check if the fifo is empty	       */
-    if (FIFO_IS_EMPTY(fifo))
-    {
-        return;
-    }
-
-    /*	step2,	calculate the read position        */
-    uint8_t *buffer = (uint8_t *)fifo->buffer;
-    buffer += (FIFO_TAIL(fifo) * fifo->element_size);
-
-    /*	step3,	read the data from the buffer      */
-    memcpy(data, buffer, fifo->element_size);
-
-    /*	step4,	update the tail pointer		       */
-    fifo->tail++;
 }
 
 /*******************************************************************************
@@ -197,4 +198,5 @@ void sys_fifo_pop_array(sys_fifo_t *fifo, void *data, int16_t count)
     memcpy(data, buffer, cnt2 * fifo->element_size);
     fifo->tail += cnt2;
 }
+#endif
 /*********************************** END **************************************/

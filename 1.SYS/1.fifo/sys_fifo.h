@@ -39,13 +39,15 @@ void sys_fifo_init(sys_fifo_t *fifo, void *buffer,
 /* Second API: push data into the fifo                         */
 void sys_fifo_push(sys_fifo_t *fifo, const void *data);
 
-/* Third API: push multiple data into the fifo                 */
-void sys_fifo_push_array(sys_fifo_t *fifo, const void *data, int16_t count);
-
-/* Fourth API: pop data from the fifo                          */
+/* Third API: pop data from the fifo                          */
 void sys_fifo_pop(sys_fifo_t *fifo, void *data);
 
-/* Fifth API: pop multiple data from the fifo                  */
+#if FIFO_USE_MULTI
+/* Fourth API: push multiple data into the fifo               */
+void sys_fifo_push_array(sys_fifo_t *fifo, const void *data, int16_t count);
+
+/* Fifth API: pop multiple data from the fifo                 */
 void sys_fifo_pop_array(sys_fifo_t *fifo, void *data, int16_t count);
+#endif 
 /****************************** The APIs of FIFO ******************************/
 #endif /* __SYS_FIFO_H__ */

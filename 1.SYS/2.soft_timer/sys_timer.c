@@ -15,159 +15,81 @@
 #include "sys_timer.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
-#define ARRIVE_TIME         sys_get_ticks() - task->ticks >= task->period
-#define HAS_COUNTER         (task->repeat_count != 0)
-#define INFINITELY          (task->repeat_count == -1)
+#define INFINITELY          -1
+#define TIMER_IDLE          0
+#define TIMER_RUN           1
+#define ARRIVE_TIME         sys_get_ticks() - timer->ticks >= timer->period
+#define HAS_COUNTER         (timer->repeat_count != 0)
+#define COUNT_INFINITELY    (timer->repeat_count == -1)
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
-static sys_task_t *task_list = NULL;
-static sys_fifo_t task_fifo;
-static sys_task_t task_buffer[10];
-static sys_task_t* sys_task_inst(task_cb_t cb, uint32_t period, void *user_data);
+static sys_timer_t *operate_list = NULL;
+static sys_timer_t *execute_list = NULL;
+static sys_timer_t timer_pool[TIMER_MAX_COUNT];
+static uint32_t    timer_pool_index = 0;
 /***************************** DECLARATIONS ***********************************/
-
-void sys_task_init(void)
+void sys_timer_init(void)
 {
-    sys_fifo_init(&task_fifo, task_buffer, sizeof(sys_task_t), 10);
+    memset(timer_pool, 0, sizeof(timer_pool));
+    timer_pool_index = ~((1U << TIMER_MAX_COUNT) - 1);
 }
 
-void sys_task_create(task_cb_t cb, uint32_t period, void *user_data)
+
+sys_timer_t* sys_timer_create(uint32_t period, timer_cb_t cb, void *arg)
 {
-    /*	step1,	inst a task struct */
-    sys_task_t *task = sys_task_inst(cb, period, user_data);
-
-    /*	step2,	initialize the task struct */
-    task->priority      =  0;
-    task->repeat_count  =  -1;
-}
-
-void sys_task_later(task_cb_t cb, uint32_t delay, void *user_data)
-{
-    /*	step1,	inst a task struct */
-    sys_task_t *task = sys_task_inst(cb, delay, user_data);
-
-    /*	step2,	initialize the task struct */
-    task->priority      =  0;
-    task->repeat_count  =  1;
-}
-
-void sys_task_create_isr(task_cb_t cb, uint32_t period, void *user_data)
-{
-    /*	step1,	inst a task struct */
-    sys_task_t *task = sys_task_inst(cb, period, user_data);
-
-    /*	step2,	initialize the task struct */
-    task->priority      =  1;
-    task->repeat_count  =  -1;
-}
-
-void sys_task_later_isr(task_cb_t cb, uint32_t delay, void *user_data)
-{
-    /*	step1,	inst a task struct */
-    sys_task_t *task = sys_task_inst(cb, delay, user_data);
-
-    /*	step2,	initialize the task struct */
-    task->priority      =  1;
-    task->repeat_count  =  1;
-}
-
-void sys_task_set_priority(sys_task_t *task, uint8_t priority)
-{
-    task->priority = priority;
-}
-
-void sys_task_set_period(sys_task_t *task, uint32_t period)
-{
-    task->period = period;
-}
-
-void sys_task_set_repeat_count(sys_task_t *task, int repeat_count)
-{
-    task->repeat_count = repeat_count;
-}
-
-void sys_task_loop(void)
-{
-    sys_task_t *task = task_list;
-    while(NULL != task)
+    /*	step1,	if no available timer, return */
+    if(timer_pool_index == 0xFFFFFFFF)
     {
-        if(ARRIVE_TIME && HAS_COUNTER)
-        {   
-            task->ticks = sys_get_ticks();
-            task->repeat_count = INFINITELY ? -1 : task->repeat_count - 1;
-            if(task->priority == 0)
-            {
-                sys_fifo_push(&task_fifo, task);
-            }      
-            else
-            {
-                task->task_cb(task->user_data);    
-            }  
-            if(task->repeat_count == 0)
-            {
-                sys_task_delete(task);
-            }
-        }
-        task = task->next;
+        return NULL;
     }
+
+    /*	step2,	find the first available timer */
+    uint8_t index = __builtin_clz((~timer_pool_index));
+    timer_pool_index |= (1U << index);
+    sys_timer_t *timer = &timer_pool[index];
+
+    /*	step3,	initialize the timer */
+    timer->id           = index;
+    timer->state        = TIMER_RUN;
+    timer->period       = period;
+    timer->ticks        = sys_get_ticks();
+    timer->repeat_count = INFINITELY;
+    timer->timer_cb     = cb;
+#if TIMER_USE_DATA
+    timer->user_data    = arg;
+#else 
+    (void *)arg;
+#endif
+
+    /*	step4,	add the timer to operate list */
+    timer->next = operate_list;
+    timer->prev = NULL;
+    operate_list = timer;
+
+    return timer;
 }
 
-void sys_task_mainloop(void)
+void sys_timer_delete(sys_timer_t *timer)
 {
-    sys_task_t *task = NULL;
-    sys_fifo_pop(&task_fifo, task);
-    if(NULL != task)
-    {
-        task->task_cb(task->user_data);
-    }
-    else
-    { /* Idle tasks can be executed */
-
-    }
-}
-
-static sys_task_t* sys_task_inst(task_cb_t cb, uint32_t period, void *user_data)
-{
-    /*	step1,	malloc a task struct */
-    sys_task_t *task = (sys_task_t *)sys_malloc(sizeof(sys_task_t));
-    if(NULL == task)
+    if(timer == NULL)
     {
         return;
     }
 
-    /*	step2,	initialize the task struct */
-    task->period       = period;
-    task->ticks        = sys_get_ticks();
-    task->task_cb      = cb;
-    task->user_data    = user_data;
-
-    /*	step3,	add the task to the task list */
-    task->next = task_list;
-    task_list  = task;
-
-    return task;
-}
-
-static void sys_task_delete(sys_task_t *task)
-{
-    sys_task_t *head = task_list;
-    /*	step1,	The node to be deleted is the head node */
-    if(head == task)
+    /*	step1,	remove the timer from operate list */
+    if(NULL == timer->prev)
     {
-        task_list = task_list->next;
-        sys_free(task);
+        operate_list = timer->next;
+        timer_pool_index &= ~(1U << timer->id);
+        memset(timer, 0, sizeof(sys_timer_t));
         return;
     }
-
-    /*	step2,	The node to be deleted is not the head node */
-    while (head->next != NULL && head->next != task) 
+    timer->prev->next = timer->next;
+    if(NULL != timer->next)
     {
-        head = head->next;
-        /*	step2.1, no found */
-        if(head->next == NULL) return;
+        timer->next->prev = timer->prev;
     }
-    
-    /*	step3,	The node to be deleted is found */
-    head->next = task->next;
-    sys_free(task);
+    timer_pool_index &= ~(1U << timer->id);
+    memset(timer, 0, sizeof(sys_timer_t));
 }
+

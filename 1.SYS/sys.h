@@ -20,23 +20,24 @@
 #include "sys_conf.h"
 /******************************* INCLUDES *************************************/
 /******************************* DEFINES **************************************/
-#if USE_PERF_COUNTER
-    #include "perf_counter.h"
-    #define sys_get_ticks()     get_system_ms()
-#endif
-#include "./1.printf/printf.h"
 #if USE_FIFO
     #include "./1.fifo/sys_fifo.h"
 #endif
 #if USE_TIMER
     #include "./2.soft_timer/sys_timer.h"
 #endif
+
 #if USE_BSP_BTN
     #include "./1.btn/bsp_btn.h"
 #endif
 
-#define sys_malloc(x)         malloc(x)
-#define sys_free(x)           free(x)
+#if USE_PERF_COUNTER
+    #include "perf_counter.h"
+    #define sys_get_ticks()     get_system_ms()
+#endif
+#if USE_PRINTF
+    #include "./1.printf/printf.h"
+#endif
 /******************************* DEFINES **************************************/
 /***************************** DECLARATIONS ***********************************/
 /***************************** DECLARATIONS ***********************************/
